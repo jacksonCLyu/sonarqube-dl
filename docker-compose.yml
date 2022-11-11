@@ -1,0 +1,46 @@
+version: '3'
+# 网络配置
+networks:
+  backend: 
+    driver: ${NETWORKS_DRIVER}
+
+# 服务容器配置
+services:
+  sonarqube:
+    build:
+      context: ./sonarserver
+    depends_on:
+      - db
+    environment:
+      SONARQUBE_JDBC_URL: ${SONARQUBE_JDBC_URL}
+      SONARQUBE_JDBC_USERNAME: ${SONARQUBE_JDBC_USERNAME}
+      SONARQUBE_JDBC_PASSWORD: ${SONARQUBE_JDBC_PASSWORD}
+      SONAR_SEARCH_JAVAADDITIONALOPTS: ${SONAR_SEARCH_JAVAADDITIONALOPTS}
+      TZ: ${TZ}
+    ports:
+      - "${SONARQUBE_PORT}:9000"
+    volumes:
+      - ${DATA_PATH_HOST}/sonarserver/data:/opt/sonarqube/data
+      - ${DATA_PATH_HOST}/sonarserver/extensions:/opt/sonarqube/extensions
+      - ${DATA_PATH_HOST}/sonarserver/logs:/opt/sonarqube/logs
+    networks:
+      - backend
+    restart: always
+  db:
+    build:
+      context: ./postgresql
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: ${TZ}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes: 
+      - ${DATA_PATH_HOST}/postgresql:/var/lib/postgresql
+      - ${DATA_PATH_HOST}/postgresql/data:/var/lib/postgresql/data
+    networks:
+      - backend
+    restart: always
+
+  
